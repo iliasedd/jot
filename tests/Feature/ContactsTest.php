@@ -72,6 +72,42 @@ class ContactsTest extends TestCase
         $this->assertEquals('05-14-1998', Contact::first()->birthday->format('m-d-Y'));
     }
 
+    /** @test */
+    public function a_contact_can_be_retrieved()
+    {
+        $contact = Contact::factory()->create();
+        $response = $this->get('/api/contacts/'.$contact->id);
+
+        $response->assertJsonFragment([
+            'name' => $contact->name,
+            'email' => $contact->email,
+            'birthday' => $contact->birthday,
+            'company' => $contact->company
+        ]);
+    }
+
+    /** @test */
+    public function a_contact_can_be_patched()
+    {
+        $contact = Contact::factory()->create();
+        $response = $this->patch('/api/contacts/'.$contact->id, $this->data());
+        $contact = $contact->fresh();
+
+        $this->assertEquals('Test Name', $contact->name);
+        $this->assertEquals('test@email.com', $contact->email);
+        $this->assertEquals('05/14/1988', $contact->birthday->format('m/d/Y'));
+        $this->assertEquals('ABC String', $contact->company);
+    }
+
+    /** @test */
+    public function a_contact_can_be_deleted()
+    {
+        $contact = Contact::factory()->create();
+        $response = $this->delete('/api/contacts/'.$contact->id);
+        
+        $this->assertCount(0, Contact::all());
+    }
+
     private function data()
     {
         return [
